@@ -9,8 +9,9 @@ query = """
 SELECT count(1)
 FROM public_matches 
 WHERE TRUE
-AND public_matches.avg_mmr >= {}
-AND public_matches.start_time >= extract(epoch from timestamp '2020-01-26')
+AND game_mode IN (1,2,3,4,22)
+AND avg_mmr >= {}
+AND start_time >= extract(epoch from timestamp '2020-01-26')
 """
 
 parsedQuery = urllib.parse.quote(query.format(mmr))
