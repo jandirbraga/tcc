@@ -4,8 +4,8 @@ import urllib.parse
 import time
 import pandas as pd
 
-mmr = 4100
-quantidade = 200
+mmr = 3500
+quantidade = 400000
 
 query = """
 WITH match_ids AS (SELECT match_id FROM public_matches
@@ -13,9 +13,9 @@ WITH match_ids AS (SELECT match_id FROM public_matches
     condition
     AND public_matches.avg_mmr >= {}
     AND game_mode IN (1,2,3,4,22)
-    AND public_matches.start_time >= extract(epoch from timestamp '2020-01-26')
+    AND public_matches.start_time >= extract(epoch from timestamp '2020-04-09')
     ORDER BY match_id DESC
-    LIMIT 100)
+    LIMIT 50)
     SELECT * FROM
         (SELECT --*,
             match_id,
@@ -44,28 +44,32 @@ nomecsv = current_time + '.csv'
 
 lastId = 0
 erros = 0
+excecoes = 0
 firstCall = True
-for i in range(0, quantidade // 100) :
-    time.sleep(2.5)
+for i in range(0, quantidade // 100):
+    time.sleep(2)
     condition = ''
-    if lastId > 0 :
+    if lastId > 0:
         condition = 'AND public_matches.match_id < {}'.format(lastId)
-        
-    ans_get = requests.get(call.replace('condition',condition))
-    ans_json = json.loads(ans_get.text)
-    if "rows" in ans_json :
-        df = pd.io.json.json_normalize(ans_json['rows'])
-        lastId = df.iloc[0,:]['match_id']
-        df.sort_values(['match_id'],ascending=[0],inplace=True)
-        if firstCall :
-            df.to_csv(nomecsv)
-            firstCall = False
-        else :
-            df.to_csv(nomecsv, mode='a', header=False)
-    else:
-        erros+= 1
-        print(ans_json)
+    try:
+        ans_get = requests.get(call.replace('condition', condition))
+        ans_json = json.loads(ans_get.text)
+        if "rows" in ans_json:
+            df = pd.io.json.json_normalize(ans_json['rows'])
+            lastId = df.iloc[0, :]['match_id']
+            if firstCall:
+                df.to_csv(nomecsv)
+                firstCall = False
+            else:
+                df.to_csv(nomecsv, mode='a', header=False)
+        else:
+            erros += 1
+            print(ans_json)
+    except:
+        excecoes += 1
+        print("exceção {}".format(excecoes))
 
 data = pd.read_csv(nomecsv)
 
-print('Foram obtidas {} partidas e tivemos {} erros'.format(data.shape[0], erros))
+print('Foram obtidas {} partidas e tivemos {} erros'.format(
+    data.shape[0], erros))

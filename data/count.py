@@ -2,7 +2,7 @@ import requests
 import json
 import urllib.parse
 
-mmr = 4500 
+mmr = 4100 
 
 
 query = """
